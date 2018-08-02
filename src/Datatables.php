@@ -24,6 +24,7 @@ namespace Pkeogan\LaravelDatatables;
 use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\View\Factory;
 use App\Exceptions\GeneralException;
+use Illuminate\Http\Request;
 
 
 /**
@@ -37,7 +38,11 @@ class Datatables
     protected $data;
     protected $types;
     protected $types_text;
-    
+	protected $request;
+	protected $models;
+	protected $attributes;
+    protected $finalView;
+	protected $tempColumn;
   
     public function __construct (Factory $view) {
       $this->view = $view;
@@ -130,178 +135,53 @@ class Datatables
 	
   public function datatable()
   {
-    $this->type = 'datatable';
+    $this->type = 'datatables';
     return $this;
   }
-    
-  public function box()
+	
+	public function datatables()
   {
-    $this->type = 'box';
+    $this->type = 'datatables';
     return $this;
   }
-    
-  public function label()
-  {
-    $this->type = 'label';
-    return $this;
-  }
-  
-  public function text()
-  {
-    $this->type = 'text-input';
-    $this->data['type'] = 'text';
-    return $this;
-  }
-  
-  public function password()
-  {
-    $this->type = 'text-input';
-    $this->data['type'] = 'password';
-    return $this;
-  }
-  
-  public function email()
-  {
-    $this->type = 'text-input';
-    $this->data['type'] = 'email';
-    return $this;
-  }
-  
-  public function textarea()
-  {
-    $this->type = 'text-input';
-    $this->data['type'] = 'textarea';
-    return $this;
-  }
-  
-  public function hidden()
-  {
-    $this->type = 'text-input';
-    $this->data['type'] = 'hidden';
-    return $this;
-  }
+
   
   public function build()
   {
     return $this;
   }
-  
-  public function toggle()
-  {
-    $this->type = 'toggle';
-    return $this;
-  }
+
 	
-	public function datatablePrepareResponse($models, $attributes)
+	public function ajaxResponse($models, $attributes)
 	{
 		$response = array();
+		if($models == null || ($models instanceof \Illuminate\Database\Eloquent\Collection  && $models->count() == 0) )
+		{
+			$response['data'] = "";
+			return json_encode($response);
+		}
 			
 		foreach($models as $key=>$model)
 		{
 			foreach($attributes as $attribute)
 			{
-				$response['data'][$key][$attribute] = $model->getAttribute($attribute);
+				$response['data'][$key][$attribute['data']] = $model->getAttribute($attribute['data']);
 			}
 			
 		}
 		return json_encode($response);
 	}
 	
-  public function dateTime()
-  {
-    $this->type = 'flatpickr';
-  	$this->data['data'] = ['enableTime' => true, 'noCalendar' => false];			
-    return $this;
-  }
-	
-	
-public function time()
-  {
-    $this->type = 'flatpickr';
-	$this->data['data'] = ['enableTime' => true, 'noCalendar' => true];			  
-    return $this;
-  }
-	
-  public function date()
-  {
-    $this->type = 'flatpickr';
-	$this->data['data'] = ['enableTime' => false, 'noCalendar' => false];	
-    return $this;
-  }
-    
-  public function nestable()
-  {
-    $this->type = 'nestable';
-    return $this;
-  }
-    
-  public function slider()
-  {
-    $this->type = 'slider';
-    return $this;
-  }
-	
-  public function summernote()
-  {
-    $this->type = 'summernote';
-    return $this;
-  }
-  
-  public function select()
-  {
-    $this->type = 'select2';
-    return $this;
-  }
 
-	public function selectModel()
+  public function ajax(String $input)
   {
-    $this->type = 'select-model';
-    return $this;
-  }
-  
-    public function multiple()
-  {
-    $this->type = 'select2';
-    $this->data['attributes'] = ['multiple' => 'multiple'];
-    return $this;
-  }
-  
-  public function name(String $input)
-  {
-    $this->data['name'] = $input;
+    $this->data['ajax'] = $input;
     return $this;
   }
   
   public function id(String $input)
   {
     $this->data['id']= $input;
-    return $this;
-  }
-  
-  public function helperText(String $input)
-  {
-    $this->data['helper_text'] = $input;
-    return $this;
-  }
-  
-  public function value($input)
-  {
-    $this->data['value'] = $input;
-    return $this;
-  }
-	
-	private function mergeIfNull()
-	{
-		
-	}
-  
-  public function attributes(Array $input)
-  {
-    if(is_null($this->data['attributes'])){
-      $this->data['attributes'] = $input;
-    } else {
-      $this->data['attributes'] = array_merge($this->data['attributes'], $input);
-    }
     return $this;
   }
   
@@ -319,32 +199,49 @@ public function time()
   
   public function compile()
   {
-        if(! isset($this->data['name'])){ throw new DatatablesException('ERROR: NAME WASNT SET '); };
-        if(! isset($this->data['id'])){ $this->data['id'] = str_replace(' ', '_', strtolower($this->data['name'])); }; //if the ID wasnt set, set it to the $this->name alpah-underscore lower case
-  }
-  
-  public function render()
-  {
-        $this->compile();
-        $type = $this->type;
-        $data = $this->data;
-        $this->type = null;
-      //reset for next render call.
-        $this->data = ['name' => null,
-                    'id' => null,
-                    'helper_text' => null,
-                    'value' => null,
-                    'attributes' => null,
-                    'data' => null];
-    
-        return $this->renderComponent($type, $data);
   }
 	
-public function dd()
+	public function create()
+	{
+    	return $this;
+	}
+	
+	public function models($models)
+	{
+		$this->data['models'] = $models;
+    	return $this;
+	}
+	
+	public function addColumn($input)
+	{
+		$this->data['attributes'][] = $input;
+    	return $this;
+	}
+	
+	public function attributes( $attributes)
+	{
+		$this->data['attributes'] = $attributes;
+    	return $this;
+	}
+	
+	public function view($view)
+	{
+		$this->finalView = $view;
+    	return $this;
+	}
+	
+  
+  public function render(Request $request)
   {
         $this->compile();
+	  
+	    if($request->ajax() )
+		{
+		    return( $this->ajaxResponse($this->data['models'], $this->data['attributes']) );
+		}
         $type = $this->type;
         $data = $this->data;
+	     $this->tempColumn = null;
         $this->type = null;
       //reset for next render call.
         $this->data = ['name' => null,
@@ -354,10 +251,11 @@ public function dd()
                     'attributes' => null,
                     'data' => null];
     
-		dd($data);
+	  	return( view($this->finalView)->withDatatable($this->renderComponent('html', $data))->withDatatablejs($this->renderComponent('js', $data)));
+	  
+	  
   }
-  
-  
+
     /**
      * Transform the string to an Html serializable object
      *
@@ -380,10 +278,8 @@ public function dd()
      */
     protected function renderComponent($type, $data)
     {
-
-
         return new HtmlString(
-          $this->view->make('htmlextra::' . $type, $data)->render()
+          $this->view->make('datatables::' . $type, $data)->render()
         );
     }
   
