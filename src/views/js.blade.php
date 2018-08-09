@@ -3,7 +3,10 @@
 	$config = config('datatables.config');
 	$config['ajax'] = route($ajax);
 	$config['stateSave'] = true;
+<<<<<<< HEAD
 	$config['autoWidth'] = true;
+=======
+>>>>>>> d4c38c3a4365cca01b0e82009de9d8542f1473d7
 	foreach($attributes as $attribute)
 	{
 		$config['columns'][] = $attribute;
@@ -16,6 +19,7 @@
 
 
 @endphp
+<<<<<<< HEAD
 	var datatable{{ $id }} = $('#datatable-{{ $id }}').DataTable( 
 	
 		{!! $json !!}
@@ -44,5 +48,10 @@
 	
 	
 
+=======
+	$('#datatable-{{ $id }}').DataTable( 
+		{!! $json !!}
+     );
+>>>>>>> d4c38c3a4365cca01b0e82009de9d8542f1473d7
 
 {{-- </script> --}}
