@@ -3,10 +3,7 @@
 	$config = config('datatables.config');
 	$config['ajax'] = route($ajax);
 	$config['stateSave'] = true;
-<<<<<<< HEAD
 	$config['autoWidth'] = true;
-=======
->>>>>>> d4c38c3a4365cca01b0e82009de9d8542f1473d7
 	foreach($attributes as $attribute)
 	{
 		$config['columns'][] = $attribute;
@@ -19,7 +16,6 @@
 
 
 @endphp
-<<<<<<< HEAD
 	var datatable{{ $id }} = $('#datatable-{{ $id }}').DataTable( 
 	
 		{!! $json !!}
@@ -30,8 +26,7 @@
 	This jQuery Function will change the action button state from full width to dropdown style. If the device does not support this function, then the dropdown will be the default
 	*/
 	$.fn.actionButtons = function(){
-		var buttons =  $(this).first().find('a.btn').length;
-		if($(this).width() < buttons * 40 ){
+			if($('.action-buttons-large').first().parent().width() < $('.action-buttons-large').first().attr('data-buttons-count') * 40 ){
 			$('.action-buttons-large').addClass('hidden');
 			$('.action-buttons-small').removeClass('hidden');
 		} else {
@@ -48,10 +43,5 @@
 	
 	
 
-=======
-	$('#datatable-{{ $id }}').DataTable( 
-		{!! $json !!}
-     );
->>>>>>> d4c38c3a4365cca01b0e82009de9d8542f1473d7
 
 {{-- </script> --}}
