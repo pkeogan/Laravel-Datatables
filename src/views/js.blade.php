@@ -1,7 +1,7 @@
 {{-- <script> --}}
 @php
 	$config = config('datatables.config');
-	$config['ajax'] = route($ajax);
+	$config['ajax'] = $ajax;
 	$config['stateSave'] = true;
 	$config['autoWidth'] = true;
 	foreach($attributes as $attribute)

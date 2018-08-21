@@ -251,7 +251,10 @@ class Datatables
                     'attributes' => null,
                     'data' => null];
     
-	  	return( view($this->finalView)->withDatatable($this->renderComponent('html', $data))->withDatatablejs($this->renderComponent('js', $data)));
+	  	return( view($this->finalView)
+			   ->withData($data['data'])
+			   ->withDatatable($this->renderComponent('html', $data))
+			   ->withDatatablejs($this->renderComponent('js', $data)));
 	  
 	  
   }
