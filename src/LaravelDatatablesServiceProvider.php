@@ -56,6 +56,17 @@ class LaravelDatatablesServiceProvider extends ServiceProvider
             return '<?php $__env->stopPush(); endif; ?>';
         });
 
+        Blade::directive('jsData', function ($input = false) {
+            if($input)
+            {
+                return "'+data+'";
+            } else {
+                return "'+data+'";
+
+            }
+        });
+
+
       
     }
 
