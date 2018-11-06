@@ -127,32 +127,12 @@ class Datatables
         return $this;
     }
 
-    public function alpacaRoute($input)
-    {
-        $this->buttons['route'] = $input;
-        return $this;
-    }
 
     public function alpacaButtons($input)
     {
 
-        $this->data['buttons'] = config('datatables.buttons');
+		$this->data['buttons'] = config('datatables.buttons');
 
-        foreach($input as $val)
-        {
-            if($this->data['models']->first()::staticCan($val))
-            {
-                $this->data['buttons'] = array_prepend($this->data['buttons'], ['extend' => $val]);
-                if(isset($this->button['route'][$input]))
-                {
-                    $this->buttons[$val] = $this->buttons['route'][$input];
-                } else {
-                    $this->buttons[$val] = $this->buttons['route']['default'];
-                }
-            } else {
-                $this->removeButtons[] = $val;
-            }
-        }
         return $this;
     }
 
@@ -208,20 +188,23 @@ class Datatables
 
     public function render(Request $request)
     {
+		$this->data['buttons'] = config('datatables.buttons');
         $this->compile();
         if ($request->ajax()) {
             return ($this->ajaxResponse($this->data['models'], $this->data['columns']));
         }
+		
         $type = $this->type;
         $data = $this->data;
+
+		
         $this->tempColumn = null;
         $this->type = null;
 
         return (view($this->finalView)
                 ->withData($data)
                 ->withDatatable($this->renderComponent('html', $data))
-                ->withDatatablejs($this->renderComponent('js', $data))
-                ->withDatatableButtons($this->renderComponent('buttons', $this->buttons)));
+                ->withDatatablejs($this->renderComponent('js', $data)));
 
     }
 

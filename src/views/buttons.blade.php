@@ -1,3 +1,17 @@
+jQuery.fn.extend({
+	formatErrors: function (input) {
+	  var formated = '';
+	  input = JSON.parse(input);
+	  $.each(input.message, function( index, value ) {
+		var name = index;
+		  $.each(value, function( key, errmsg ){
+				formated += '<b>'+name+'</b><p>' + errmsg + '</p>';
+		   });
+		  });
+		  return formated;
+	}
+});
+
 $.fn.dataTable.ext.buttons.reload = {
     text: 'Reload',
     action: function ( e, dt, node, config ) {
@@ -5,29 +19,24 @@ $.fn.dataTable.ext.buttons.reload = {
     }
 };
 
-@if(isset($create))
 $.fn.dataTable.ext.buttons.create = {
     text: 'Create',
     action: function ( e, dt, node, config ) {
-        $(document).createModel();
+        $(document).alpacaCreate();
     }
 };
-@endif
 
-@if(isset($edit))
 $.fn.dataTable.ext.buttons.edit = {
     name: 'edit',
     text: 'Edit',
     action: function ( e, dt, node, config ) {
         id = dt.rows( { selected: true } ).data().pluck('uuid');
-        $(document).editModel(id[0]);
+        $(document).alpacaEdit(id[0]);
     }
 };
 
-@endif
 
 
-@if(isset($delete))
 $.fn.dataTable.ext.buttons.delete = {
     name: 'delete',
     text: 'Delete',
@@ -46,7 +55,7 @@ $.fn.dataTable.ext.buttons.delete = {
                 if (result.value) {
                     $.ajax({
                         type: "POST",
-                        url: "{{ route($delete, 'delete') }}"  ,
+                        url: "/api/" +id  ,
                         data: JSON.stringify(data),
                         contentType: "application/json",
                         processData: false,
@@ -61,16 +70,14 @@ $.fn.dataTable.ext.buttons.delete = {
                                 });
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            swal('Error', XMLHttpRequest.responseJSON.message ,'error');
-                        },
+							$(document).handleError(XMLHttpRequest);                        
+						},
                         });
                 }
                 })
     }
 };
-@endif
 
-@if(isset($clone))
 $.fn.dataTable.ext.buttons.clone = {
     name: 'clone',
     text: 'Clone',
@@ -89,7 +96,7 @@ $.fn.dataTable.ext.buttons.clone = {
                 if (result.value) {
                     $.ajax({
                         type: "POST",
-                        url: "{{ route($clone, 'clone') }}"  ,
+                        url: "/api/" +id  ,
                         data: JSON.stringify(data),
                         contentType: "application/json",
                         processData: false,
@@ -104,29 +111,26 @@ $.fn.dataTable.ext.buttons.clone = {
                                 });
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            swal('Error', XMLHttpRequest.responseJSON.message ,'error');
-                        },
+							$(document).handleError(XMLHttpRequest);
+						},
                         });
                 }
                 })    }
 };
-@endif
 
-@if(isset($delete))
 jQuery.fn.extend({
         destroyModel: function () {
           var id = this.closest('[data-model-id]').attr('data-model-id');
           $.ajax({
-            type: "GET",
-            url: "{{ route($delete, 'destroy')}}/" + id,
+            type: "DELETE",
+            url: "/api/" + id,
             success: function(data) {
                 $("table[id*=datatable]").DataTable().ajax.reload(null, false);
                  swal('Deleted', data.success,'success');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
-              swal('Error', XMLHttpRequest.responseJSON.message ,'error');
-            },
+				$(document).handleError(XMLHttpRequest);
+			},
           });
         }
     });
-@endif
