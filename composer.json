@@ -1,6 +1,7 @@
 {
   "name": "pkeogan/laravel-datatables",
   "description": "A Package to Intergrate Datatables into Laravels 5.5 Blade Template System",
+  "version": "1.0",
   "keywords": [
     "laravel",
     "Datatables",
