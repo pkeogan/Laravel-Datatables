@@ -55,6 +55,16 @@ class LaravelDatatablesServiceProvider extends ServiceProvider
         Blade::directive('endpushonce', function ($expression) {
             return '<?php $__env->stopPush(); endif; ?>';
         });
+      
+        Blade::directive('IfHide', function ($input) {
+            return '<?php if( isset('.$input.') && ('.$input.' == true) ){echo "hidden";} ?>';
+        });
+              Blade::directive('hideGroup', function ($input) {
+            return '<?php if( isset($data["hideGroup"]) && ($data["hideGroup"] == true) ){echo "hidden";} ?>';
+        });
+        Blade::directive('labelRequired', function () {
+          return '<?php if(in_array(\'required\', $attributes)){echo "<span class=\'form-input-required-label\' >(required)</span>";} ?>';
+        });
 
         Blade::directive('jsData', function ($input = false) {
             if($input)

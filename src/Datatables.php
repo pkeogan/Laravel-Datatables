@@ -29,6 +29,7 @@ use Illuminate\Support\HtmlString;
 class Datatables
 {
 
+    protected $with;
     protected $type = null;
     protected $view;
     protected $data;
@@ -47,6 +48,7 @@ class Datatables
     public function __construct(Factory $view)
     {
         $this->view = $view;
+        $this->with = null;
         $this->type = null;
         $this->buttons = null;
         $this->data = ['name' => null,
@@ -55,6 +57,18 @@ class Datatables
             'value' => null,
             'attributes' => null,
             'data' => null];
+    }
+  
+    public function __call($call, $value)
+    {
+      
+      $method = substr($call, 0, 4);
+      $name = strtolower(substr($call, 4, 1)) . substr($call, 5);
+      
+        if( $method == 'with' && strlen($name) > 0 ){
+            $this->with[$name] = $value[0];
+        }
+        return $this; // Continue The Chain
     }
 
     public function alpacaEdit($input)
@@ -103,10 +117,15 @@ class Datatables
         return json_encode($response);
     }
 
-    public function ajax(String $input)
+    public function ajax($input)
     {
+      if(is_array($input)){
+         $this->data['ajax'] = $input;
+        return $this;
+      } else {
         $this->data['ajax'] = $input;
         return $this;
+      }
     }
 
     public function id(String $input)
@@ -114,10 +133,11 @@ class Datatables
         $this->data['id'] = $input;
         return $this;
     }
+  
 
     public function data($input)
     {
-        if (is_null($this->data['data'])) {
+        if (!isset($this->data['data'])) {
             $this->data['data'] = $input;
         } else {
             $this->data['data'] = array_merge($this->data['data'], $input);
@@ -146,6 +166,12 @@ class Datatables
     public function models($models)
     {
         $this->data['models'] = $models;
+        return $this;
+    }
+  
+      public function addSetting($name, $value)
+    {
+        $this->data[$name] = $value;
         return $this;
     }
 
@@ -188,6 +214,7 @@ class Datatables
 
     public function render(Request $request)
     {
+      
 		$this->data['buttons'] = config('datatables.buttons');
         $this->compile();
         if ($request->ajax()) {
@@ -200,11 +227,17 @@ class Datatables
 		
         $this->tempColumn = null;
         $this->type = null;
-
-        return (view($this->finalView)
+        if($this->with){
+        return (view($this->finalView, $this->with)
                 ->withData($data)
                 ->withDatatable($this->renderComponent('html', $data))
                 ->withDatatablejs($this->renderComponent('js', $data)));
+        } else {
+              return (view($this->finalView)
+                ->withData($data)
+                ->withDatatable($this->renderComponent('html', $data))
+                ->withDatatablejs($this->renderComponent('js', $data)));
+        }
 
     }
 
