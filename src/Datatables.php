@@ -36,6 +36,7 @@ class Datatables
     protected $types;
     protected $types_text;
     protected $request;
+    protected $response;
     protected $models;
     protected $attributes;
     protected $finalView;
@@ -48,15 +49,18 @@ class Datatables
     public function __construct(Factory $view)
     {
         $this->view = $view;
+        $this->response = null;
+        $this->models = null;
         $this->with = null;
         $this->type = null;
         $this->buttons = null;
         $this->data = ['name' => null,
-            'id' => null,
-            'helper_text' => null,
-            'value' => null,
-            'attributes' => null,
-            'data' => null];
+                       'json' => null,
+                        'id' => null,
+                        'helper_text' => null,
+                        'value' => null,
+                        'attributes' => null,
+                        'data' => null];
     }
   
     public function __call($call, $value)
@@ -100,21 +104,27 @@ class Datatables
         return $this;
     }
 
-    public function ajaxResponse($models, $attributes)
+    public function ajaxResponse($models, $attributes, $response)
     {
-        $response = array();
+        $r = array();
+      if( is_null($response) )
+      {
         if ($models == null || ($models instanceof \Illuminate\Database\Eloquent\Collection && $models->count() == 0)) {
-            $response['data'] = "";
-            return json_encode($response);
+            $r['data'] = "";
+            return json_encode($r);
         }
 
         foreach ($models as $key => $model) {
             foreach ($attributes as $attribute) {
-                $response['data'][$key][$attribute['data']] = $model->getAttribute($attribute['data']);
+                $r['data'][$key][$attribute['data']] = $model->getAttribute($attribute['data']);
             }
 
         }
-        return json_encode($response);
+        return json_encode($r);
+      }
+      else{
+        return json_encode([ 'data' => $response]);
+      }
     }
 
     public function ajax($input)
@@ -166,6 +176,14 @@ class Datatables
     public function models($models)
     {
         $this->data['models'] = $models;
+      $this->data['response'] = null;
+        return $this;
+    }
+  
+      public function response($response)
+    {
+        $this->data['response'] = $response;
+        $this->data['models'] = null;
         return $this;
     }
   
@@ -208,23 +226,26 @@ class Datatables
 
     public function compile()
     {
-        $this->data['json'] = Encoder::encode($this->data);
+      $temp = $this->data;
+      unset($temp['models']);
+       unset($temp['response']);
+        $this->data['json'] = Encoder::encode($temp);
         return $this;
     }
 
     public function render(Request $request)
     {
       
+
+      
 		$this->data['buttons'] = config('datatables.buttons');
         $this->compile();
         if ($request->ajax()) {
-            return ($this->ajaxResponse($this->data['models'], $this->data['columns']));
+            return ($this->ajaxResponse($this->data['models'], $this->data['columns'], $this->data['response']));
         }
 		
         $type = $this->type;
-        $data = $this->data;
-
-		
+        $data = $this->data;		    
         $this->tempColumn = null;
         $this->type = null;
         if($this->with){
@@ -263,6 +284,7 @@ class Datatables
      */
     protected function renderComponent($type, $data)
     {
+
         return new HtmlString(
             $this->view->make('datatables::' . $type, $data)->render()
         );
